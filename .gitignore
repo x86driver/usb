@@ -1,3 +1,8 @@
 Module.*
 modules.*
+*.ko
+*.o
+*.cmd
+.tmp*
+*.mod.c
 

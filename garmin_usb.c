@@ -387,15 +387,17 @@ static int skel_probe(struct usb_interface *interface, const struct usb_device_i
 				err("Could not allocate bulk_in_buffer");
 				goto error;
 			}
+			info("Find bulk in addr: %d, size: %d", dev->bulk_in_endpointAddr, dev->bulk_in_size);
 		}
 
 		if (!dev->bulk_out_endpointAddr &&
 		    usb_endpoint_is_bulk_out(endpoint)) {
 			/* we found a bulk out endpoint */
 			dev->bulk_out_endpointAddr = endpoint->bEndpointAddress;
+			info("Find bulk out addr: %d, size: %d", dev->bulk_out_endpointAddr, le16_to_cpu(endpoint->wMaxPacketSize));
 		}
 
-		if (!dev->bulk_in_endpointAddr &&
+		if (!dev->int_in_endpointAddr &&
 		    usb_endpoint_is_int_in(endpoint)) {
 			buffer_size = le16_to_cpu(endpoint->wMaxPacketSize);
 			dev->int_in_size = buffer_size;
@@ -405,6 +407,7 @@ static int skel_probe(struct usb_interface *interface, const struct usb_device_i
 				err("Could not allocate int_in_buffer");
 				goto error;
 			}
+			info("Find int in addr: %d, size: %d", dev->int_in_endpointAddr, dev->int_in_size);
 		}
 	}
 	if (!(dev->bulk_in_endpointAddr && dev->bulk_out_endpointAddr)) {
