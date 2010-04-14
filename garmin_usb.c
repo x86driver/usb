@@ -24,8 +24,8 @@
 
 
 /* Define these values to match your devices */
-#define USB_SKEL_VENDOR_ID	0xfff0
-#define USB_SKEL_PRODUCT_ID	0xfff0
+#define USB_SKEL_VENDOR_ID	0x091e
+#define USB_SKEL_PRODUCT_ID	0x0003
 
 /* table of devices that work with this driver */
 static struct usb_device_id skel_table [] = {
@@ -53,9 +53,12 @@ struct usb_skel {
 	struct semaphore	limit_sem;		/* limiting the number of writes in progress */
 	struct usb_anchor	submitted;		/* in case we need to retract our submissions */
 	unsigned char           *bulk_in_buffer;	/* the buffer to receive data */
+	unsigned char 		*int_in_buffer;
 	size_t			bulk_in_size;		/* the size of the receive buffer */
+	size_t			int_in_size;
 	__u8			bulk_in_endpointAddr;	/* the address of the bulk in endpoint */
 	__u8			bulk_out_endpointAddr;	/* the address of the bulk out endpoint */
+	__u8			int_in_endpointAddr;	/* the address of the int in endpoint */
 	int			errors;			/* the last request tanked */
 	int			open_count;		/* count the number of openers */
 	spinlock_t		err_lock;		/* lock for errors */
@@ -390,6 +393,18 @@ static int skel_probe(struct usb_interface *interface, const struct usb_device_i
 		    usb_endpoint_is_bulk_out(endpoint)) {
 			/* we found a bulk out endpoint */
 			dev->bulk_out_endpointAddr = endpoint->bEndpointAddress;
+		}
+
+		if (!dev->bulk_in_endpointAddr &&
+		    usb_endpoint_is_int_in(endpoint)) {
+			buffer_size = le16_to_cpu(endpoint->wMaxPacketSize);
+			dev->int_in_size = buffer_size;
+			dev->int_in_endpointAddr = endpoint->bEndpointAddress;
+			dev->int_in_buffer = kmalloc(buffer_size, GFP_KERNEL);
+			if (!dev->int_in_buffer) {
+				err("Could not allocate int_in_buffer");
+				goto error;
+			}
 		}
 	}
 	if (!(dev->bulk_in_endpointAddr && dev->bulk_out_endpointAddr)) {
