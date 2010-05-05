@@ -17,7 +17,7 @@ int main(int argc, char **argv)
 	}
 
 	int fd = open(argv[1], O_RDWR);
-	int size = atoi(argv[1]);
+	int size = atoi(argv[2]);
 	int ret = 0;
 	char *buf;
 
