@@ -5,4 +5,4 @@ modules.*
 *.cmd
 .tmp*
 *.mod.c
-
+testusb/testusb

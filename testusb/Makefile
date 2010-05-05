@@ -1,8 +1,8 @@
 TARGET = testusb
-CFLAGS =
+CFLAGS = -static
 
-ARCH = x86
-#ARCH = arm
+#ARCH = x86
+ARCH = arm
 
 ifeq ($(ARCH), x86)
 CC = gcc
