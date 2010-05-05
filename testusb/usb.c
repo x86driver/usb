@@ -7,21 +7,22 @@
 #include "function.h"
 
 //#define USB_NODE "/dev/skel0"
-#define USB_NODE "/dev/garmin"
+//#define USB_NODE "/dev/garmin"
 
 int main(int argc, char **argv)
 {
-	if (argc != 2) {
-		fprintf(stderr, "Usage: %s [read_total_size]\n", argv[0]);
+	if (argc != 3) {
+		fprintf(stderr, "Usage: %s [node] [read_total_size]\n", argv[0]);
 		exit(1);
 	}
 
-	int fd = open(USB_NODE, O_RDWR);
+	int fd = open(argv[1], O_RDWR);
 	int size = atoi(argv[1]);
 	int ret = 0;
 	char *buf;
 
 	if (!fd) {
+		printf("Open: %s error!\n", argv[1]);
 		perror("open");
 		exit(1);
 	}
@@ -31,7 +32,7 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 
-	printf("Open %s OK\n", USB_NODE);
+	printf("Open %s OK\n", argv[1]);
 
 	memset((void*)&buf[0], 0, size);
 	ret = read(fd, (void*)&buf[0], size);
