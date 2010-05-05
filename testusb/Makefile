@@ -12,3 +12,6 @@ function.o:function.c
 testusb:usb.o function.o
 	gcc $(CFLAGS) -Wall -o $@ usb.o function.o
 
+clean:
+	rm -rf $(TARGET)
+
