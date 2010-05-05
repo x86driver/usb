@@ -196,7 +196,7 @@ static ssize_t skel_read(struct file *file, char *buffer, size_t count, loff_t *
 			      usb_rcvintpipe(dev->udev, dev->int_in_endpointAddr),
 			      dev->int_in_buffer,
 			      min(dev->int_in_size, count),
-			      &bytes_read, 10000);
+			      &bytes_read, 1000);
 
 	/* if the read was successful, copy the data to userspace */
 	if (!retval) {
@@ -208,6 +208,8 @@ static ssize_t skel_read(struct file *file, char *buffer, size_t count, loff_t *
 
 exit:
 	mutex_unlock(&dev->io_mutex);
+	if (retval < 0)
+		retval = 0;
 	return retval;
 }
 
@@ -377,7 +379,7 @@ static int skel_probe(struct usb_interface *interface, const struct usb_device_i
 		endpoint = &iface_desc->endpoint[i].desc;
 
 		if (!dev->bulk_in_endpointAddr &&
-		    usb_endpoint_is_bulk_in(endpoint)) {
+		    usb_endpoint_is_bulk_in(endpoint) && endpoint->bEndpointAddress == 0x82) {
 			/* we found a bulk in endpoint */
 			buffer_size = le16_to_cpu(endpoint->wMaxPacketSize);
 			dev->bulk_in_size = buffer_size;
@@ -391,14 +393,14 @@ static int skel_probe(struct usb_interface *interface, const struct usb_device_i
 		}
 
 		if (!dev->bulk_out_endpointAddr &&
-		    usb_endpoint_is_bulk_out(endpoint)) {
+		    usb_endpoint_is_bulk_out(endpoint) && endpoint->bEndpointAddress == 0x02) {
 			/* we found a bulk out endpoint */
 			dev->bulk_out_endpointAddr = endpoint->bEndpointAddress;
 			info("Find bulk out addr: %d, size: %d", dev->bulk_out_endpointAddr, le16_to_cpu(endpoint->wMaxPacketSize));
 		}
 
 		if (!dev->int_in_endpointAddr &&
-		    usb_endpoint_is_int_in(endpoint)) {
+		    usb_endpoint_is_int_in(endpoint) && endpoint->bEndpointAddress == 0x83) {
 			buffer_size = le16_to_cpu(endpoint->wMaxPacketSize);
 			dev->int_in_size = buffer_size;
 			dev->int_in_endpointAddr = endpoint->bEndpointAddress;
