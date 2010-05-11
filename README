@@ -1,0 +1,6 @@
+這裡面有兩種東西
+
+1. Linux USB driver, 用來跟 garmin usb 通訊
+記得有問題的時候要檢查 read() 時是透過 Int IN || Bulk IN
+
+2. testusb, 可以用來指定一次要讀多大的資料
