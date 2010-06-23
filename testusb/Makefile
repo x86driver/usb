@@ -1,13 +1,13 @@
 TARGET = testusb
 CFLAGS = -static
 
-ARCH = x86
-#ARCH = arm
+#ARCH = x86
+ARCH = arm
 
 ifeq ($(ARCH), x86)
 CC = gcc
 else
-CC = arm-none-linux-gnueabi-gcc
+CC = /home/doremi/CodeSourcery2/Sourcery_G++_Lite/bin/arm-none-linux-gnueabi-gcc
 endif
 
 all:$(TARGET)

@@ -22,10 +22,15 @@
 #include <linux/usb.h>
 #include <linux/mutex.h>
 
+#define info printk
 
 /* Define these values to match your devices */
 #define USB_SKEL_VENDOR_ID	0x091e
 #define USB_SKEL_PRODUCT_ID	0x0003
+
+#define BULK_IN_EP 0x82
+#define BULK_OUT_EP 0x02
+#define INT_IN_EP 0x83
 
 /* table of devices that work with this driver */
 static struct usb_device_id skel_table [] = {
@@ -193,14 +198,14 @@ static ssize_t skel_read(struct file *file, char *buffer, size_t count, loff_t *
 
 	/* do a blocking bulk read to get data from the device */
 	retval = usb_bulk_msg(dev->udev,
-			      usb_rcvintpipe(dev->udev, dev->int_in_endpointAddr),
-			      dev->int_in_buffer,
-			      min(dev->int_in_size, count),
-			      &bytes_read, 1000);
+			      usb_rcvbulkpipe(dev->udev, dev->bulk_in_endpointAddr),
+			      dev->bulk_in_buffer,
+			      min(dev->bulk_in_size, count),
+			      &bytes_read, 5000);
 
 	/* if the read was successful, copy the data to userspace */
 	if (!retval) {
-		if (copy_to_user(buffer, dev->int_in_buffer, bytes_read))
+		if (copy_to_user(buffer, dev->bulk_in_buffer, bytes_read))
 			retval = -EFAULT;
 		else
 			retval = bytes_read;
@@ -378,8 +383,10 @@ static int skel_probe(struct usb_interface *interface, const struct usb_device_i
 	for (i = 0; i < iface_desc->desc.bNumEndpoints; ++i) {
 		endpoint = &iface_desc->endpoint[i].desc;
 
+		printk(KERN_ALERT "find endpoint: %d\n", endpoint->bEndpointAddress);
+
 		if (!dev->bulk_in_endpointAddr &&
-		    usb_endpoint_is_bulk_in(endpoint) && endpoint->bEndpointAddress == 0x82) {
+		    usb_endpoint_is_bulk_in(endpoint) && endpoint->bEndpointAddress == BULK_IN_EP) {
 			/* we found a bulk in endpoint */
 			buffer_size = le16_to_cpu(endpoint->wMaxPacketSize);
 			dev->bulk_in_size = buffer_size;
@@ -393,14 +400,14 @@ static int skel_probe(struct usb_interface *interface, const struct usb_device_i
 		}
 
 		if (!dev->bulk_out_endpointAddr &&
-		    usb_endpoint_is_bulk_out(endpoint) && endpoint->bEndpointAddress == 0x02) {
+		    usb_endpoint_is_bulk_out(endpoint) && endpoint->bEndpointAddress == BULK_OUT_EP) {
 			/* we found a bulk out endpoint */
 			dev->bulk_out_endpointAddr = endpoint->bEndpointAddress;
 			info("Find bulk out addr: %d, size: %d", dev->bulk_out_endpointAddr, le16_to_cpu(endpoint->wMaxPacketSize));
 		}
 
 		if (!dev->int_in_endpointAddr &&
-		    usb_endpoint_is_int_in(endpoint) && endpoint->bEndpointAddress == 0x83) {
+		    usb_endpoint_is_int_in(endpoint) && endpoint->bEndpointAddress == INT_IN_EP) {
 			buffer_size = le16_to_cpu(endpoint->wMaxPacketSize);
 			dev->int_in_size = buffer_size;
 			dev->int_in_endpointAddr = endpoint->bEndpointAddress;
