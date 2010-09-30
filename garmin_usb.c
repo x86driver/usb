@@ -28,9 +28,17 @@
 #define USB_SKEL_VENDOR_ID	0x091e
 #define USB_SKEL_PRODUCT_ID	0x0003
 
+#if 0 //kernel
 #define BULK_IN_EP 0x82
 #define BULK_OUT_EP 0x02
 #define INT_IN_EP 0x83
+#endif
+
+#if 1 //in lk
+#define BULK_IN_EP 0x81
+#define BULK_OUT_EP 0x01
+#define INT_IN_EP 0x82
+#endif
 
 /* table of devices that work with this driver */
 static struct usb_device_id skel_table [] = {
@@ -155,6 +163,7 @@ static int skel_release(struct inode *inode, struct file *file)
 
 	/* decrement the count on our device */
 	kref_put(&dev->kref, skel_delete);
+	printk(KERN_ALERT "I't no error\n");
 	return 0;
 }
 
@@ -383,7 +392,7 @@ static int skel_probe(struct usb_interface *interface, const struct usb_device_i
 	for (i = 0; i < iface_desc->desc.bNumEndpoints; ++i) {
 		endpoint = &iface_desc->endpoint[i].desc;
 
-		printk(KERN_ALERT "find endpoint: %d\n", endpoint->bEndpointAddress);
+		//printk(KERN_ALERT "find endpoint: 0x%x, size: %d\n", endpoint->bEndpointAddress, endpoint->wMaxPacketSize);
 
 		if (!dev->bulk_in_endpointAddr &&
 		    usb_endpoint_is_bulk_in(endpoint) && endpoint->bEndpointAddress == BULK_IN_EP) {
@@ -396,14 +405,14 @@ static int skel_probe(struct usb_interface *interface, const struct usb_device_i
 				err("Could not allocate bulk_in_buffer");
 				goto error;
 			}
-			info("Find bulk in addr: %d, size: %d", dev->bulk_in_endpointAddr, dev->bulk_in_size);
+			info("Find bulk in addr: %d, size: %d\n", dev->bulk_in_endpointAddr, dev->bulk_in_size);
 		}
 
 		if (!dev->bulk_out_endpointAddr &&
 		    usb_endpoint_is_bulk_out(endpoint) && endpoint->bEndpointAddress == BULK_OUT_EP) {
 			/* we found a bulk out endpoint */
 			dev->bulk_out_endpointAddr = endpoint->bEndpointAddress;
-			info("Find bulk out addr: %d, size: %d", dev->bulk_out_endpointAddr, le16_to_cpu(endpoint->wMaxPacketSize));
+			info("Find bulk out addr: %d, size: %d\n", dev->bulk_out_endpointAddr, le16_to_cpu(endpoint->wMaxPacketSize));
 		}
 
 		if (!dev->int_in_endpointAddr &&
@@ -416,7 +425,7 @@ static int skel_probe(struct usb_interface *interface, const struct usb_device_i
 				err("Could not allocate int_in_buffer");
 				goto error;
 			}
-			info("Find int in addr: %d, size: %d", dev->int_in_endpointAddr, dev->int_in_size);
+			info("Find int in addr: %d, size: %d\n", dev->int_in_endpointAddr, dev->int_in_size);
 		}
 	}
 	if (!(dev->bulk_in_endpointAddr && dev->bulk_out_endpointAddr)) {
@@ -475,7 +484,7 @@ static void skel_draw_down(struct usb_skel *dev)
 {
 	int time;
 
-	time = usb_wait_anchor_empty_timeout(&dev->submitted, 1000);
+	time = usb_wait_anchor_empty_timeout(&dev->submitted, 10000);
 	if (!time)
 		usb_kill_anchored_urbs(&dev->submitted);
 }
