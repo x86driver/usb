@@ -28,13 +28,13 @@
 #define USB_SKEL_VENDOR_ID	0x091e
 #define USB_SKEL_PRODUCT_ID	0x0003
 
-#if 0 //kernel
-#define BULK_IN_EP 0x82
+#if 1 //kernel
+#define BULK_IN_EP 0x83
 #define BULK_OUT_EP 0x02
-#define INT_IN_EP 0x83
+#define INT_IN_EP 0x82
 #endif
 
-#if 1 //in lk
+#if 0 //in lk
 #define BULK_IN_EP 0x81
 #define BULK_OUT_EP 0x01
 #define INT_IN_EP 0x82
@@ -207,14 +207,14 @@ static ssize_t skel_read(struct file *file, char *buffer, size_t count, loff_t *
 
 	/* do a blocking bulk read to get data from the device */
 	retval = usb_bulk_msg(dev->udev,
-			      usb_rcvbulkpipe(dev->udev, dev->bulk_in_endpointAddr),
-			      dev->bulk_in_buffer,
-			      min(dev->bulk_in_size, count),
+			      usb_rcvbulkpipe(dev->udev, dev->int_in_endpointAddr),
+			      dev->int_in_buffer,
+			      min(dev->int_in_size, count),
 			      &bytes_read, 5000);
 
 	/* if the read was successful, copy the data to userspace */
 	if (!retval) {
-		if (copy_to_user(buffer, dev->bulk_in_buffer, bytes_read))
+		if (copy_to_user(buffer, dev->int_in_buffer, bytes_read))
 			retval = -EFAULT;
 		else
 			retval = bytes_read;
@@ -428,7 +428,7 @@ static int skel_probe(struct usb_interface *interface, const struct usb_device_i
 			info("Find int in addr: %d, size: %d\n", dev->int_in_endpointAddr, dev->int_in_size);
 		}
 	}
-	if (!(dev->bulk_in_endpointAddr && dev->bulk_out_endpointAddr)) {
+	if (!(dev->bulk_in_endpointAddr && dev->bulk_out_endpointAddr && dev->int_in_endpointAddr)) {
 		err("Could not find both bulk-in and bulk-out endpoints");
 		goto error;
 	}

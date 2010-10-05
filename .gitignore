@@ -5,4 +5,5 @@ modules.*
 *.cmd
 .tmp*
 *.mod.c
+*.txt
 testusb/testusb
