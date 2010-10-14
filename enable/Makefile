@@ -9,6 +9,9 @@ all:$(TARGET)
 enable:enable.cpp
 	$(C++) $(CFLAGS) -o $@ $<
 
+up:enable
+	adb push enable /system
+
 clean:
 	rm -rf $(TARGET)
 

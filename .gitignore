@@ -7,3 +7,4 @@ modules.*
 *.mod.c
 *.txt
 testusb/testusb
+enable/enable

@@ -1,6 +1,7 @@
 #include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 using namespace std;
 
@@ -23,8 +24,7 @@ static inline int function_get(const char *file)
 		return -1;
 	}
 	fread(status, 1, 1, fp);
-	cout << file << " status: " << status << endl;
-	return 0;
+	return status[0] - '0';
 }
 
 class Function {
@@ -40,15 +40,35 @@ private:
 	char *file;
 };
 
-int main()
+const int delay = 1;
+static inline void on_off(Function func[], int n)
 {
+	func[n].set(1);
+	sleep(delay);
+	if (func[n].get() != 1)
+		cerr << "Turn " << n << " on failed" << endl;
+	func[n].set(0);
+	sleep(delay);
+	if (func[n].get() != 0)
+		cerr << "Turn " << n << " off failed" << endl;
+}
+
+int main(int argc, char **argv)
+{
+	if (argc != 2) {
+		cerr << "Usage: " << argv[0] << " times" << endl;
+		exit(1);
+	}
 	Function func[2] = {
 		Function((char*)"ums_enable"),
 		Function((char*)"garmin_enable")
 	};
 
-	func[0].get();
-	func[1].get();
+	for (int i = 0; i < atoi(argv[1]); ++i) {
+		on_off(func, 0);
+		on_off(func, 1);
+	}
+	cout << "Test " << atoi(argv[1]) << " times OK" << endl;
 	return 0;
 }
 
