@@ -26,12 +26,12 @@
 
 /* Define these values to match your devices */
 #define USB_SKEL_VENDOR_ID	0x091e
-#define USB_SKEL_PRODUCT_ID	0x0003
+#define USB_SKEL_PRODUCT_ID	0x2585
 
 #if 1 //kernel
-#define BULK_IN_EP 0x83
+#define BULK_IN_EP 0x82
 #define BULK_OUT_EP 0x02
-#define INT_IN_EP 0x82
+#define INT_IN_EP 0x83
 #endif
 
 #if 0 //in lk
@@ -392,7 +392,7 @@ static int skel_probe(struct usb_interface *interface, const struct usb_device_i
 	for (i = 0; i < iface_desc->desc.bNumEndpoints; ++i) {
 		endpoint = &iface_desc->endpoint[i].desc;
 
-		//printk(KERN_ALERT "find endpoint: 0x%x, size: %d\n", endpoint->bEndpointAddress, endpoint->wMaxPacketSize);
+		printk(KERN_ALERT "find endpoint: 0x%x, size: %d\n", endpoint->bEndpointAddress, endpoint->wMaxPacketSize);
 
 		if (!dev->bulk_in_endpointAddr &&
 		    usb_endpoint_is_bulk_in(endpoint) && endpoint->bEndpointAddress == BULK_IN_EP) {
